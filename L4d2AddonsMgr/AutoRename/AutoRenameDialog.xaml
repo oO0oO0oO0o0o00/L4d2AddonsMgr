@@ -1,0 +1,170 @@
+﻿<Window x:Class="L4d2AddonsMgr.AutoRenameSpace.AutoRenameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:L4d2AddonsMgr.AutoRenameSpace"
+        mc:Ignorable="d" ResizeMode="NoResize"
+        Title="自动重命名" Height="600" Width="450" MinHeight="550" MinWidth="500">
+    <Grid Background="#f0f0f0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!--
+        It's called a tab control, right?
+        https://www.wpf-tutorial.com/tabcontrol/using-the-tabcontrol/
+        -->
+        <TabControl Grid.Row="0" BorderBrush="#d9d9d9"
+                    Margin="12,12,12,0">
+            <!--
+            Style the header. It sucks.
+            https://stackoverflow.com/questions/31770632/resize-tabitem-header-size-inside-tabcontrol
+            https://docs.microsoft.com/en-us/previous-versions/ms752032(v=vs.100)
+            -->
+            <TabControl.Resources>
+                <Style TargetType="{x:Type TabItem}" BasedOn="{StaticResource {x:Type TabItem}}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Grid>
+                                    <Border Name="Border" Margin="-2,0,0,-1"
+                                            BorderThickness="1,1,1,0"
+                                            BorderBrush="#d9d9d9">
+                                        <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center"
+                                                          HorizontalAlignment="Center"
+                                                          ContentSource="Header"
+                                                          Margin="6,6,16,0"
+                                                          RecognizesAccessKey="True"/>
+                                    </Border>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Border" Property="Background" Value="#ffffff" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+            <TabItem Header="选项">
+                <StackPanel Orientation="Vertical" Margin="12">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label>对于</Label>
+                        <RadioButton x:Name="PartAppliedScopeSelectedItemsRadio" Grid.Column="1"
+                             IsChecked="{Binding MyAppliedScope.IsScopeSelectedItemsChecked, Mode=TwoWay}"
+                             VerticalContentAlignment="Center">选中项（可多选）</RadioButton>
+                        <RadioButton IsChecked="{Binding MyAppliedScope.IsScopeAllChecked, Mode=TwoWay}"
+                             Grid.Column="2" VerticalContentAlignment="Center">当前全部</RadioButton>
+                    </Grid>
+
+                    <RadioButton IsChecked="{Binding IsRadioInternalToFileChecked, Mode=TwoWay}"
+                         Padding="5" VerticalContentAlignment="Center">使用 显示名 更改 文件名</RadioButton>
+                    <Grid Name="PartInternalToFileNamingOptions" Margin="24,5,0,5">
+                        <Grid.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="Margin" Value="4"/>
+                            </Style>
+                        </Grid.Resources>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <!--
+                Having to use border?
+                https://stackoverflow.com/questions/1319974/wpf-grid-with-column-row-margin-padding
+                -->
+                        <Border Grid.Row="0" Grid.Column="0">
+                            <RadioButton IsChecked="{Binding IsRadioItfSourcePreferenceAddonChecked, Mode=TwoWay}">首选组件名</RadioButton>
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="1">
+                            <RadioButton IsChecked="{Binding IsRadioItfSourcePreferenceMissionChecked, Mode=TwoWay}">首选地图名</RadioButton>
+                        </Border>
+                        <Border Grid.Row="1" Grid.ColumnSpan="2">
+                            <CheckBox IsChecked="{Binding Model.ItfSkipIfFnContainsCjk, Mode=TwoWay}">跳过：文件名已经包含中文的组件</CheckBox>
+                        </Border>
+                        <Border Grid.Row="2" Grid.ColumnSpan="2">
+                            <CheckBox IsChecked="{Binding Model.ItfFnAddMapOrModPrefix, Mode=TwoWay}">为地图组件和非地图组件分别添加“map__”和“mod__”前缀</CheckBox>
+                        </Border>
+                        <Border Grid.Row="3" Grid.ColumnSpan="2">
+                            <CheckBox IsChecked="{Binding Model.ItfSkipIfFnHasThosePrefises, Mode=TwoWay}">跳过：文件名已经包含上述前缀的组件</CheckBox>
+                        </Border>
+                        <Border Grid.Row="4" Grid.ColumnSpan="2">
+                            <CheckBox IsChecked="{Binding Model.ItfKeepAsSuffixForNumericalFn, Mode=TwoWay}">对于纯数字文件名（导出自创意工坊），将原名保留作为后缀</CheckBox>
+                        </Border>
+                        <Border Grid.Row="5" Grid.ColumnSpan="2">
+                            <TextBlock>还将跳过无法读取显示名等有问题的的组件。同名的封面图片将一并改名。</TextBlock>
+                        </Border>
+                    </Grid>
+
+                    <RadioButton IsChecked="{Binding IsRadioFileToInternalChecked, Mode=TwoWay}"
+                         Padding="5" VerticalContentAlignment="Center">使用 文件名 更改 显示名</RadioButton>
+                    <Grid Name="PartFileToInternalNamingOptions" Margin="24,5,0,5">
+                        <Grid.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="Margin" Value="4"/>
+                            </Style>
+                        </Grid.Resources>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Row="0" Grid.Column="0">
+                            <CheckBox IsChecked="{Binding Model.FtiInclAddonName, Mode=TwoWay}">更改组件名</CheckBox>
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="1">
+                            <CheckBox IsChecked="{Binding Model.FtiInclMissionName, Mode=TwoWay}">更改地图名</CheckBox>
+                        </Border>
+                        <Border Grid.Row="1" Grid.ColumnSpan="2">
+                            <CheckBox IsChecked="{Binding Model.FtiOnlyForFailedNames, Mode=TwoWay}">仅在显示名无法读取或未设置的情况下更改</CheckBox>
+                        </Border>
+                        <Border Grid.Row="2" Grid.ColumnSpan="2">
+                            <CheckBox IsChecked="{Binding Model.FtiTryRecoverFailedNameInsteadFirst, Mode=TwoWay}">
+                                <TextBlock TextWrapping="Wrap">对于无法读取的显示名，首先尝试从格式错误的配置文件中恢复，失败时再使用文件名</TextBlock>
+                            </CheckBox>
+                        </Border>
+                        <Border Grid.Row="3" Grid.ColumnSpan="2">
+                            <TextBlock>还将去除由本软件重命名产生的前后缀。<LineBreak/>组件内，格式错误的配置文件会被自动添加bak后缀进行备份。</TextBlock>
+                        </Border>
+                    </Grid>
+                    <TextBlock Margin="3,0">从创意工坊订阅的组件无法修改，会被忽略。<LineBreak/>如果要进行更改，必须先转为普通组件并取消订阅。</TextBlock>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+        <StackPanel HorizontalAlignment="Right" Grid.Row="1" Orientation="Horizontal"
+                    Margin="0,16" FocusManager.IsFocusScope="True" Name="PartDlgButtons">
+            <StackPanel.Resources>
+                <!--
+                using deault style as parent style:
+                https://michaelscodingspot.com/explicit-implicit-and-default-styles-in-wpf/
+                -->
+                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                    <Setter Property="Margin" Value="0,0,16,0"/>
+                </Style>
+            </StackPanel.Resources>
+            <Button Name="PartConfirmButton" Click="ConfirmButton_Click">执行(_X)</Button>
+            <Button Name="PartCancelButton" IsCancel="True">算了(_C)</Button>
+        </StackPanel>
+    </Grid>
+</Window>

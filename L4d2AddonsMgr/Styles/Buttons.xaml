@@ -1,0 +1,192 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:L4d2AddonsMgr.Styles">
+
+    <!--
+        Underline?
+        https://stackoverflow.com/questions/22609341/how-to-make-label-text-underline
+        
+        Only show when container hovered?
+        https://stackoverflow.com/questions/24079623/show-button-on-label-mousehover-in-wpf
+        https://stackoverflow.com/questions/28406134/using-mouseover-in-stackpanel-wpf
+        https://stackoverflow.com/questions/34905411/stackpanel-ismouseover-is-false-when-mouse-is-over-the-gap-between-stackpanel/34906623
+        
+        Mouse pointer as point? Cursor?
+        https://stackoverflow.com/questions/16585016/how-do-i-write-wpf-trigger-to-change-cursor-on-textblock-hover
+        
+        Clicking not available for label, use label-styled-button.
+        https://stackoverflow.com/questions/27352791/wpf-label-click-event-not-getting-fired
+        
+        Need parameter for click event? Use command instead.
+        https://stackoverflow.com/questions/2006507/add-parameter-to-button-click-event
+        -->
+
+    <Style x:Key="LinkButton" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <TextBlock TextDecorations="Underline">
+                        <ContentPresenter />
+                    </TextBlock>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Foreground" Value="Blue"/>
+        <Setter Property="Cursor" Value="Hand" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Foreground" Value="Red" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ButtonControl" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="Button">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Background" Value="#e1e1e1"/>
+        <Setter Property="BorderBrush" Value="#adadad"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Width" Value="88"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ControlTemplate.Resources>
+                        <!--
+                        Animations?
+                        https://stackoverflow.com/questions/47223818/wpf-xaml-animate-blinking-a-button-on-mouse-over?rq=1
+                        
+                        At first we have these story boards and triggers directly inside the style.
+                        As the style being used directly nothing breaks but with the style being
+                        used as "based on" the program crashes.
+                        Then moving into control template as a variation to this:
+                        https://stackoverflow.com/questions/9920803/storyboard-not-found-in-name-scope-of-style
+                        -->
+
+                        <Storyboard x:Key="sbHoverBg">
+                            <ColorAnimation Duration="0:0:0.2" To="#e5f1fb" Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"/>
+                        </Storyboard>
+
+                        <Storyboard x:Key="sbHoverBdthBdcol">
+                            <ColorAnimation Duration="0:0:0.2" To="#0078d7" Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"/>
+                            <ThicknessAnimation Duration="0:0:0.2" To="1" Storyboard.TargetProperty="BorderThickness"/>
+                        </Storyboard>
+
+                        <Storyboard x:Key="sbClkBg">
+                            <ColorAnimation Duration="0:0:0.2" To="#cce4f7" Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"/>
+                        </Storyboard>
+
+                        <Storyboard x:Key="sa1">
+                            <ColorAnimation Duration="0:0:0.2" To="#e1e1e1" Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"/>
+                        </Storyboard>
+
+                        <Storyboard x:Key="sa2">
+                            <ThicknessAnimation Duration="0:0:0.2" To="2" Storyboard.TargetProperty="BorderThickness"/>
+                            <ColorAnimation Duration="0:0:0.2" To="#0078d7" Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"/>
+                        </Storyboard>
+
+                        <Storyboard x:Key="sa3">
+                            <ThicknessAnimation Duration="0:0:0.2" To="1" Storyboard.TargetProperty="BorderThickness"/>
+                            <ColorAnimation Duration="0:0:0.2" To="#adadad" Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)"/>
+                        </Storyboard>
+                    </ControlTemplate.Resources>
+                    <Border Name="PartBorder" 
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            Background="{TemplateBinding Background}">
+                        <Label Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <!--<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />-->
+                    </Border>
+                    <ControlTemplate.Triggers>
+
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <StopStoryboard BeginStoryboardName="a1"/>
+                                <StopStoryboard BeginStoryboardName="a2"/>
+                                <StopStoryboard BeginStoryboardName="a3"/>
+                                <BeginStoryboard Name="sbHoverBg" Storyboard="{StaticResource sbHoverBg}"/>
+                                <BeginStoryboard Name="sbHoverBdthBdcol" Storyboard="{StaticResource sbHoverBdthBdcol}"/>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="sbHoverBdthBdcol"/>
+                                <StopStoryboard BeginStoryboardName="sbHoverBg"/>
+                                <StopStoryboard BeginStoryboardName="sbHoverBgRec"/>
+                                <StopStoryboard BeginStoryboardName="sbClkBg"/>
+                                <BeginStoryboard Name="a1" Storyboard="{StaticResource sa1}"/>
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <!--
+                        Instead of event trigger with mouse down & mouse up use trigger for ispressed.
+                        http://www.java2s.com/Tutorial/CSharp/0470__Windows-Presentation-Foundation/Controltemplateeventtriggerborderandtext.htm
+                        -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <StopStoryboard BeginStoryboardName="sbHoverBg"/>
+                                <StopStoryboard BeginStoryboardName="sbHoverBgRec"/>
+                                <BeginStoryboard Name="sbClkBg" Storyboard="{StaticResource sbClkBg}"/>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="sbClkBg"/>
+                                <BeginStoryboard Name="sbHoverBgRec" Storyboard="{StaticResource sbHoverBg}"/>
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="False"/>
+                                <Condition Property="IsFocused" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <StopStoryboard BeginStoryboardName="a3"/>
+                                <BeginStoryboard Name="a2" Storyboard="{StaticResource sa2}"/>
+                            </MultiTrigger.EnterActions>
+                        </MultiTrigger>
+
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="False"/>
+                                <Condition Property="IsFocused" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard Name="a3" Storyboard="{StaticResource sa3}"/>
+                            </MultiTrigger.EnterActions>
+
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Resources>
+        </Style.Resources>
+
+        <Style.Triggers>
+            <!--
+            Thickness have an individual animator...
+            https://www.dotnetheaven.com/article/animate-a-borderthickness-value-in-wpf
+            
+            Q wpf trigger two condition
+            https://stackoverflow.com/questions/905932/how-can-i-provide-multiple-conditions-for-data-trigger-in-wpf
+            
+            (not used at the end)
+            https://stackoverflow.com/questions/17337730/wpf-binding-to-parent-content-in-datatrigger
+            
+            To override the default glow effect...
+            https://stackoverflow.com/questions/3854317/how-to-remove-default-mouse-over-effect-on-wpf-buttons
+            -->
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

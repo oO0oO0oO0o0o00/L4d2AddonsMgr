@@ -1,0 +1,30 @@
+﻿<Application x:Class="L4d2AddonsMgr.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:L4d2AddonsMgr"
+             xmlns:converters="clr-namespace:L4d2AddonsMgr.ValueConvertersSpace"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Images\Icons.xaml"/>
+                <ResourceDictionary>
+                    <converters:FormatFileSizeConverter x:Key="FormatFileSizeConverter" />
+                </ResourceDictionary>
+                <ResourceDictionary>
+                    <converters:FilterButtonCheckedStateConverter x:Key="FilterButtonCheckedStateConverter" />
+                </ResourceDictionary>
+                <ResourceDictionary>
+                    <converters:FilterUrlButtonCheckedStateConverter x:Key="FilterUrlButtonCheckedStateConverter" />
+                </ResourceDictionary>
+                <ResourceDictionary>
+                    <converters:IconToImageSourceConverter x:Key="IconToImageSourceConverter" />
+                </ResourceDictionary>
+                <ResourceDictionary Source="Styles\Buttons.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/Fluent;Component/Themes/Generic.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
+    </Application.Resources>
+</Application>
