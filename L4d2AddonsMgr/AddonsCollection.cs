@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
+using L4d2AddonsMgr.AddonsLibrarySpace;
 
 namespace L4d2AddonsMgr {
 
@@ -15,18 +15,21 @@ namespace L4d2AddonsMgr {
      */
     public class AddonsCollection : INotifyPropertyChanged {
 
-        private string _filterText;
-
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private List<VpkHolder> allFiles;
         private bool _isLoading;
+
+        private string _filterText;
+
+        private List<VpkHolder> allFiles;
+
+        public AddonsLibrary Library { get; private set; }
 
         public string FilterText {
             get => _filterText; set {
                 if (value == null || value == "" || value.Trim() == "") value = null;
                 else value = value.ToLowerInvariant();
-                var previous = _filterText;
+                string previous = _filterText;
                 if (value != previous) {
                     _filterText = value;
                     OnPropertyChanged(nameof(FilterText));
@@ -44,7 +47,7 @@ namespace L4d2AddonsMgr {
         public bool IsLoading {
             get => _isLoading;
             set {
-                var oldVal = _isLoading;
+                bool oldVal = _isLoading;
                 _isLoading = value;
                 if (oldVal != value) OnPropertyChanged(nameof(IsLoading));
             }
@@ -58,7 +61,8 @@ namespace L4d2AddonsMgr {
             }
         }
 
-        public AddonsCollection() {
+        public AddonsCollection(AddonsLibrary addonsLibrary) {
+            Library = addonsLibrary;
             allFiles = new List<VpkHolder>();
             BuiltinFilters = new List<VpkFilter>();
             DownloadUrlFilters = new List<VpkFilter>();
@@ -67,12 +71,18 @@ namespace L4d2AddonsMgr {
                 (s, e) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShownFilesSize"));
         }
 
-        public void Add(VpkHolder vpkHolder) {
+        public void ReloadFromLibrary() {
+            Application.Current.Dispatcher.Invoke(() => Clear());
+            foreach (var item in Library)
+                Application.Current.Dispatcher.Invoke(new Action(() => Add(item)));
+        }
+
+        private void Add(VpkHolder vpkHolder) {
             allFiles.Add(vpkHolder);
             if (Filter(vpkHolder)) Files.Add(vpkHolder);
         }
 
-        public void Clear() {
+        private void Clear() {
             allFiles.Clear();
             Files.Clear();
         }
@@ -100,9 +110,9 @@ namespace L4d2AddonsMgr {
 
         private bool AddFilterRecur(VpkFilter filter) {
             if (BuiltinFilters.Contains(filter)) return false;
-            // I hate them.
+            // "I hate them."
             foreach (var hate in filter.hates) RemoveFilterRecur(hate);
-            // I hate those of my type.
+            // "I hate those of my type."
             bool notDone;
             if (filter.exclusiveOfType)
                 do {
@@ -114,7 +124,7 @@ namespace L4d2AddonsMgr {
                             break;
                         }
                 } while (notDone);
-            // They hate me.
+            // "They hate me."
             do {
                 notDone = false;
                 foreach (var item in BuiltinFilters)
@@ -125,7 +135,7 @@ namespace L4d2AddonsMgr {
                     }
             } while (notDone);
             BuiltinFilters.Add(filter);
-            // I need these.
+            // "I need these."
             foreach (var need in filter.needs) AddFilterRecur(need);
             return true;
         }
@@ -133,7 +143,7 @@ namespace L4d2AddonsMgr {
         private bool RemoveFilterRecur(VpkFilter filter) {
             if (BuiltinFilters.Remove(filter)) {
                 bool notDone;
-                // They cannot survive without me.
+                // "They cannot survive without me."
                 do {
                     notDone = false;
                     foreach (var item in BuiltinFilters)
@@ -179,20 +189,18 @@ namespace L4d2AddonsMgr {
             return false;
         }
 
-        private async void RefreshShownList() {
+        private void RefreshShownList() {
             IsLoading = true;
-            Files.Clear();
+            Application.Current.Dispatcher.Invoke(() => Files.Clear());
             // Get a dispatcher.
             // https://stackoverflow.com/questions/11625208/accessing-ui-main-thread-safely-in-wpf
-            await Task.Run(() => {
-                foreach (var item in allFiles)
-                    if (Filter(item)) {
-                        // Vitualize the wrap panel.
-                        // https://stackoverflow.com/questions/32720694/virtualizing-wrappanel-as-listviews-itemstemplate
-                        Application.Current.Dispatcher.Invoke(() => Files.Add(item));
-                        //Thread.Sleep(10);
-                    }
-            });
+            foreach (var item in allFiles)
+                if (Filter(item)) {
+                    // Vitualize the wrap panel.
+                    // https://stackoverflow.com/questions/32720694/virtualizing-wrappanel-as-listviews-itemstemplate
+                    Application.Current.Dispatcher.Invoke(() => Files.Add(item));
+                    //Thread.Sleep(10);
+                }
             IsLoading = false;
         }
 
@@ -228,9 +236,9 @@ namespace L4d2AddonsMgr {
                 new VpkFilter[0], new VpkFilter[] { GeneralFilters.SourceSbeamFilter },
                 vpkHolder => {
                     try {
-                        var txt = vpkHolder.vpk.GetContainedFileText(CommonConsts.AddonRuntimeRootPathName,
+                        string txt = vpkHolder.vpk.GetContainedFileText(CommonConsts.AddonRuntimeRootPathName,
                         CommonConsts.AddonAddonInfoFileName, CommonConsts.AddonTxtExtensionName);
-                        foreach (var str in urls) if (txt.Contains(str)) return true;
+                        foreach (string str in urls) if (txt.Contains(str)) return true;
                     } catch (Exception) { }
                     return false;
                 }) {

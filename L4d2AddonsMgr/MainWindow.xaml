@@ -6,7 +6,7 @@
         xmlns:Fluent="urn:fluent-ribbon"
         xmlns:local="clr-namespace:L4d2AddonsMgr"
         xmlns:sb="clr-namespace:ExplorerSearchBox;assembly=ExplorerSearchBox"
-        mc:Ignorable="d"
+        mc:Ignorable="d" x:Name="PartRoot"
         Title="👈4👻2 Addons Manager" Height="450" Width="800" MinWidth="800" MinHeight="600">
 
     <Grid Loaded="AddonsGrid_Loaded" Name="MainView">
@@ -18,10 +18,10 @@
 
         <Fluent:Ribbon Grid.Row="0">
 
-            <!--Backstage-->
+            <!--Menu-->
             <Fluent:Ribbon.Menu>
                 <Fluent:ApplicationMenu>
-                    <Fluent:MenuItem Header="2333"/>
+                    <Fluent:MenuItem Header="打开外部文件夹" Command="{x:Static local:MainWindow.OpenExternalLibraryCommand}"/>
                 </Fluent:ApplicationMenu>
             </Fluent:Ribbon.Menu>
 
@@ -122,7 +122,7 @@
                     </Fluent:ToggleButton>
 
                 </Fluent:RibbonGroupBox>
-                <Fluent:RibbonGroupBox Header="按状态">
+                <Fluent:RibbonGroupBox Header="按状态" IsEnabled="{Binding SupportsEnabledState}">
 
                     <Fluent:ToggleButton Header="已启用"
                                    Command="{x:Static local:MainWindow.ToggleFilterCommand}"
@@ -317,7 +317,16 @@
                             <TextBlock Text="{Binding Name}" FontSize="14" Margin="4"/>
                             <TextBlock Text="{Binding FileDispName}" FontSize="10" Foreground="DarkGray"/>
 
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" IsEnabled="{Binding ElementName=PartRoot, Path=DataContext.SupportsEnabledState }">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
                                 <Label Foreground="DarkGray">
                                     <Label.Style>
                                         <Style>
@@ -360,13 +369,16 @@
     </Grid>
 
     <Window.CommandBindings>
+        <CommandBinding Command="{x:Static local:MainWindow.OpenExternalLibraryCommand}"
+                    Executed="OpenExternalLibraryCommand_Invoke"/>
+
         <CommandBinding Command="{x:Static local:MainWindow.ToggleAddonEnabledCommand}"
                     Executed="ToggleAddonEnabledCommand_Invoke"
-                    CanExecute="CanToggleAddonEnabled" />
+                    CanExecute="CanToggleAddonEnabled"/>
 
         <CommandBinding Command="{x:Static local:MainWindow.TriggerSearchCommand}"
                     Executed="TriggerSearchCommand_Invoke"
-                    CanExecute="CanTriggerSearchCommand" />
+                    CanExecute="CanTriggerSearchCommand"/>
 
         <CommandBinding Command="ApplicationCommands.Open"
                     Executed="OpenItemCommand_Invoke"/>

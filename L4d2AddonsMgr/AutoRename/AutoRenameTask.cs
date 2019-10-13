@@ -19,21 +19,21 @@ namespace L4d2AddonsMgr.AutoRenameSpace {
 
         private readonly string gameDir;
 
-        private readonly AddonListTxt listTxt;
+        private readonly AddonsListTxt listTxt;
 
         public List<VpkHolder> list;
 
         public AutoRenameConfig cfg;
 
-        public AutoRenameTask(List<VpkHolder> list, AutoRenameConfig cfg, string gameDir, AddonListTxt listTxt)
+        public AutoRenameTask(List<VpkHolder> list, AutoRenameConfig cfg, string gameDir, AddonsListTxt listTxt)
              : base("自动重命名") {
             this.list = list;
             this.cfg = cfg;
+            this.gameDir = gameDir;
             this.listTxt = listTxt;
             CancelPromptText = "要中止操作吗？部分重命名可能已经进行，此时中止并不会撤销已发生的更改。";
             MaxProgress = 10;// list.Count;
             Text = "请稍等...";
-            this.gameDir = gameDir;
         }
 
         public override void Do() {
@@ -55,7 +55,7 @@ retry:
                 mutex.WaitOne();
                 cancel = isCancelled;
                 if (!cancel) {
-                    var gameNotRunning = true;
+                    bool gameNotRunning = true;
                     Application.Current.Dispatcher.Invoke(()
                         => gameNotRunning = ProcessQuitWaiter.WaitForProcessQuit(
                            Path.Combine(gameDir, CommonConsts.L4d2ExeFileName),
@@ -81,7 +81,7 @@ retry:
                                 "对附加组件{0}的操作失败了，这可能因为文件被其他程序占用" +
                                 "（游戏本身或GCFScape等）、文件损坏" +
                                 "或本应用程序存在的问题。您可以尝试排除问题，然后重试。", "xxx"));
-                            var resBoolFail = diaFail.ShowDialog();
+                            bool? resBoolFail = diaFail.ShowDialog();
                             if (resBoolFail != true) resFail = ItemFailureDialog.Result.Abort;
                             else resFail = diaFail.GetResult();
                         });
@@ -96,7 +96,7 @@ retry:
                 }
                 Application.Current.Dispatcher.Invoke(() => CurrentProgress++);
             }
-            listTxt.SaveToFile();
+            listTxt?.SaveToFile();
         }
 
         private void DoRename_InternalNameToFileName(VpkHolder item, AutoRenameConfig cfg) {
@@ -104,7 +104,7 @@ retry:
             // Skip workshop items by default.
             if (item.vpkDir == VpkHolder.VpkDirType.WorkShopDir) return;
             // Retrieve old file name.
-            var oldFn = Path.GetFileNameWithoutExtension(item.FileInf.Name);
+            string oldFn = Path.GetFileNameWithoutExtension(item.FileInf.Name);
             // Skip items having "those" prefises and suffises, or not.
             if (cfg.ItfSkipIfFnHasThosePrefises &&
                 (oldFn.StartsWith(CommonConsts.RenameMapPrefix)
@@ -128,7 +128,7 @@ retry:
             // Skip if both approaches to read these names have failed.
             if (DoRename_IsInvalidName(name)) return;
             // Replace invalid characters for file names and format string (it does not matter, right).
-            foreach (var ch in Path.GetInvalidFileNameChars()) name = name.Replace(ch, '_');
+            foreach (char ch in Path.GetInvalidFileNameChars()) name = name.Replace(ch, '_');
             name = name.Replace('{', '(').Replace('}', ')');
             // Add prefises, or not.
             if (cfg.ItfFnAddMapOrModPrefix)
@@ -150,13 +150,13 @@ retry:
             oldFn += ".vpk";
             // Anything changed.
             if (oldFn != string.Format(name, string.Empty)) {
+                item.UpdateFileName();
                 // Preserve disabled state. Enabled is default.
                 if (item.vpkDir == VpkHolder.VpkDirType.AddonsDir && !item.IsEnabled) {
-                    listTxt.ToggleAddonEnabledState(name, false);
+                    listTxt?.ToggleAddonEnabledState(name, false);
                     // Actually not good practice.
-                    listTxt.RemoveAddonEnabledState(oldFn);
+                    listTxt?.RemoveAddonEnabledState(oldFn);
                 }
-                item.UpdateFileName();
                 Debug.WriteLine(string.Format("Renamed {0} to {1}", oldFn, name));
             }
         }
@@ -169,7 +169,7 @@ retry:
         }
 
         private string DoRename_MoveWithoutConflicts(FileInfo src, string namePattern, string counterPattern) {
-            var dirName = src.DirectoryName;
+            string dirName = src.DirectoryName;
             string resultedName;
             try {
                 resultedName = string.Format(namePattern, string.Empty);
@@ -178,7 +178,7 @@ retry:
             } catch (IOException ioe) {
                 if (!DoRename_IoExceptionIsFileExists(ioe)) throw ioe;
             }
-            for (var i = 1; i < 21; i++) {
+            for (int i = 1; i < 21; i++) {
                 try {
                     resultedName = string.Format(namePattern, string.Format(counterPattern, i));
                     src.MoveTo(Path.Combine(dirName, resultedName));
@@ -188,7 +188,7 @@ retry:
                 }
             }
             var rand = new Random();
-            for (var i = 0; i < 20; i++) {
+            for (int i = 0; i < 20; i++) {
                 try {
                     resultedName = string.Format(namePattern, string.Format(
                         namePattern, string.Format(counterPattern, rand.Next())));

@@ -89,8 +89,12 @@
     <Compile Include="AcfFile\UnexpectedTokenException.cs" />
     <Compile Include="AddonListTxt.cs" />
     <Compile Include="AddonsCollection.cs" />
+    <Compile Include="AddonsLibrary\AddonsLibrary.cs" />
+    <Compile Include="AddonsLibrary\ExternalDirectoryAddonsLibrary.cs" />
+    <Compile Include="AddonsLibrary\GameDirAddonsLibrary.cs" />
     <Compile Include="CommonConsts.cs" />
     <Compile Include="Controls\MeowWrapPanel.cs" />
+    <Compile Include="GameDirLocator.cs" />
     <Compile Include="MeowTask\CancelConfirmationDialog.xaml.cs">
       <DependentUpon>CancelConfirmationDialog.xaml</DependentUpon>
     </Compile>
@@ -111,10 +115,9 @@
     </Compile>
     <Compile Include="AutoRename\AutoRenameTask.cs" />
     <Compile Include="MeowTask\IMeowTask.cs" />
-    <Compile Include="MainWindow.xaml.GameDirLocator.cs" />
     <Compile Include="MainWindow.xaml.Exceptions.cs" />
-    <Compile Include="MainWindow.xaml.ListLoading.cs" />
     <Compile Include="MeowTask\MeowTask.cs" />
+    <Compile Include="RealFolderPicker\FolderPicker.cs" />
     <Compile Include="Utils\CStringUtil.cs" />
     <Compile Include="Utils\FileInodeComparer.cs" />
     <Compile Include="Utils\LocalizationUtil.cs" />

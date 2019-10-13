@@ -6,7 +6,7 @@ using L4d2AddonsMgr.AcfFileSpace;
 
 namespace L4d2AddonsMgr {
 
-    public class AddonListTxt {
+    public class AddonsListTxt {
 
         private readonly string filePath;
         private AcfFile addonList;
@@ -15,7 +15,7 @@ namespace L4d2AddonsMgr {
 
         public bool IsAddonListCreated { get; private set; }
 
-        public AddonListTxt(string gameDir) {
+        public AddonsListTxt(string gameDir) {
             IsAddonListCreated = false;
             filePath = Path.Combine(gameDir, CommonConsts.L4d2MainSubdirName, CommonConsts.AddonListTxtFileName);
             try {
@@ -61,7 +61,7 @@ namespace L4d2AddonsMgr {
         }
 
         public void ToggleAddonEnabledState(string name, bool enabled) {
-            var notFound = true;
+            bool notFound = true;
             foreach (var node in addonListBaseNode.Value) {
                 if (name == node.Key) {
                     if (node is AcfFile.LeafNode leaf) {

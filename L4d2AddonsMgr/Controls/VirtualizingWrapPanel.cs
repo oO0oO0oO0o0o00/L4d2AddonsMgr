@@ -82,7 +82,7 @@ namespace L4d2AddonsMgr {
 
         public void Resizing(object sender, EventArgs e) {
             if (_viewport.Width != 0) {
-                var firstIndexCache = firstIndex;
+                int firstIndexCache = firstIndex;
                 _abstractPanel = null;
                 MeasureOverride(_viewport);
                 SetFirstRowViewItemIndex(firstIndex);
@@ -92,7 +92,7 @@ namespace L4d2AddonsMgr {
 
         public int GetFirstVisibleSection() {
             int section;
-            var maxSection = 0;
+            int maxSection = 0;
             if (_abstractPanel != null) {
                 maxSection = _abstractPanel.Max(x => x.Section);
             }
@@ -107,7 +107,7 @@ namespace L4d2AddonsMgr {
         }
 
         public int GetFirstVisibleIndex() {
-            var section = GetFirstVisibleSection();
+            int section = GetFirstVisibleSection();
 
             if (_abstractPanel != null) {
                 var item = _abstractPanel.Where(x => x.Section == section).FirstOrDefault();
@@ -118,9 +118,9 @@ namespace L4d2AddonsMgr {
         }
 
         public void CleanUpItems(int minDesiredGenerated, int maxDesiredGenerated) {
-            for (var i = _children.Count - 1; i >= 0; i--) {
+            for (int i = _children.Count - 1; i >= 0; i--) {
                 var childGeneratorPos = new GeneratorPosition(i, 0);
-                var itemIndex = _generator.IndexFromGeneratorPosition(childGeneratorPos);
+                int itemIndex = _generator.IndexFromGeneratorPosition(childGeneratorPos);
                 if (itemIndex < minDesiredGenerated || itemIndex > maxDesiredGenerated) {
                     _generator.Remove(childGeneratorPos, 1);
                     RemoveInternalChildRange(i, 1);
@@ -178,8 +178,8 @@ namespace L4d2AddonsMgr {
         private void NavigateDown() {
             var gen = _generator.GetItemContainerGeneratorForPanel(this);
             var selected = (UIElement)Keyboard.FocusedElement;
-            var itemIndex = gen.IndexFromContainer(selected);
-            var depth = 0;
+            int itemIndex = gen.IndexFromContainer(selected);
+            int depth = 0;
             while (itemIndex == -1) {
                 selected = (UIElement)VisualTreeHelper.GetParent(selected);
                 itemIndex = gen.IndexFromContainer(selected);
@@ -187,7 +187,7 @@ namespace L4d2AddonsMgr {
             }
             DependencyObject next = null;
             if (Orientation == Orientation.Horizontal) {
-                var nextIndex = GetNextSectionClosestIndex(itemIndex);
+                int nextIndex = GetNextSectionClosestIndex(itemIndex);
                 next = gen.ContainerFromIndex(nextIndex);
                 while (next == null) {
                     SetVerticalOffset(VerticalOffset + 1);
@@ -215,8 +215,8 @@ namespace L4d2AddonsMgr {
             var gen = _generator.GetItemContainerGeneratorForPanel(this);
 
             var selected = (UIElement)Keyboard.FocusedElement;
-            var itemIndex = gen.IndexFromContainer(selected);
-            var depth = 0;
+            int itemIndex = gen.IndexFromContainer(selected);
+            int depth = 0;
             while (itemIndex == -1) {
                 selected = (UIElement)VisualTreeHelper.GetParent(selected);
                 itemIndex = gen.IndexFromContainer(selected);
@@ -224,7 +224,7 @@ namespace L4d2AddonsMgr {
             }
             DependencyObject next = null;
             if (Orientation == Orientation.Vertical) {
-                var nextIndex = GetLastSectionClosestIndex(itemIndex);
+                int nextIndex = GetLastSectionClosestIndex(itemIndex);
                 next = gen.ContainerFromIndex(nextIndex);
                 while (next == null) {
                     SetHorizontalOffset(HorizontalOffset - 1);
@@ -251,8 +251,8 @@ namespace L4d2AddonsMgr {
         private void NavigateRight() {
             var gen = _generator.GetItemContainerGeneratorForPanel(this);
             var selected = (UIElement)Keyboard.FocusedElement;
-            var itemIndex = gen.IndexFromContainer(selected);
-            var depth = 0;
+            int itemIndex = gen.IndexFromContainer(selected);
+            int depth = 0;
             while (itemIndex == -1) {
                 selected = (UIElement)VisualTreeHelper.GetParent(selected);
                 itemIndex = gen.IndexFromContainer(selected);
@@ -260,7 +260,7 @@ namespace L4d2AddonsMgr {
             }
             DependencyObject next = null;
             if (Orientation == Orientation.Vertical) {
-                var nextIndex = GetNextSectionClosestIndex(itemIndex);
+                int nextIndex = GetNextSectionClosestIndex(itemIndex);
                 next = gen.ContainerFromIndex(nextIndex);
                 while (next == null) {
                     SetHorizontalOffset(HorizontalOffset + 1);
@@ -287,8 +287,8 @@ namespace L4d2AddonsMgr {
         private void NavigateUp() {
             var gen = _generator.GetItemContainerGeneratorForPanel(this);
             var selected = (UIElement)Keyboard.FocusedElement;
-            var itemIndex = gen.IndexFromContainer(selected);
-            var depth = 0;
+            int itemIndex = gen.IndexFromContainer(selected);
+            int depth = 0;
             while (itemIndex == -1) {
                 selected = (UIElement)VisualTreeHelper.GetParent(selected);
                 itemIndex = gen.IndexFromContainer(selected);
@@ -296,7 +296,7 @@ namespace L4d2AddonsMgr {
             }
             DependencyObject next = null;
             if (Orientation == Orientation.Horizontal) {
-                var nextIndex = GetLastSectionClosestIndex(itemIndex);
+                int nextIndex = GetLastSectionClosestIndex(itemIndex);
                 next = gen.ContainerFromIndex(nextIndex);
                 while (next == null) {
                     SetVerticalOffset(VerticalOffset - 1);
@@ -378,24 +378,24 @@ namespace L4d2AddonsMgr {
 
             var realizedFrameSize = availableSize;
 
-            var itemCount = _itemsControl.Items.Count;
-            var firstVisibleIndex = GetFirstVisibleIndex();
+            int itemCount = _itemsControl.Items.Count;
+            int firstVisibleIndex = GetFirstVisibleIndex();
 
             var startPos = _generator.GeneratorPositionFromIndex(firstVisibleIndex);
 
-            var childIndex = (startPos.Offset == 0) ? startPos.Index : startPos.Index + 1;
-            var current = firstVisibleIndex;
-            var visibleSections = 1;
+            int childIndex = (startPos.Offset == 0) ? startPos.Index : startPos.Index + 1;
+            int current = firstVisibleIndex;
+            int visibleSections = 1;
             using (_generator.StartAt(startPos, GeneratorDirection.Forward, true)) {
-                var stop = false;
-                var isHorizontal = Orientation == Orientation.Horizontal;
+                bool stop = false;
+                bool isHorizontal = Orientation == Orientation.Horizontal;
                 double currentX = 0;
                 double currentY = 0;
-                var currentSection = GetFirstVisibleSection();
+                int currentSection = GetFirstVisibleSection();
                 while (current < itemCount) {
 
                     // Get or create the child                    
-                    var child = _generator.GenerateNext(out var newlyRealized) as UIElement;
+                    var child = _generator.GenerateNext(out bool newlyRealized) as UIElement;
                     if (newlyRealized) {
                         // Figure out if we need to insert the child at the end or somewhere in the middle
                         if (childIndex >= _children.Count) {
@@ -526,21 +526,21 @@ namespace L4d2AddonsMgr {
         public Rect MakeVisible(Visual visual, Rect rectangle) {
             var gen = _generator.GetItemContainerGeneratorForPanel(this);
             var element = (UIElement)visual;
-            var itemIndex = gen.IndexFromContainer(element);
+            int itemIndex = gen.IndexFromContainer(element);
             while (itemIndex == -1) {
                 element = (UIElement)VisualTreeHelper.GetParent(element);
                 itemIndex = gen.IndexFromContainer(element);
             }
-            var section = _abstractPanel[itemIndex].Section;
+            int section = _abstractPanel[itemIndex].Section;
             var elementRect = _realizedChildLayout[element];
             if (Orientation == Orientation.Horizontal) {
-                var viewportHeight = _pixelMeasuredViewport.Height;
+                double viewportHeight = _pixelMeasuredViewport.Height;
                 if (elementRect.Bottom > viewportHeight)
                     _offset.Y += 1;
                 else if (elementRect.Top < 0)
                     _offset.Y -= 1;
             } else {
-                var viewportWidth = _pixelMeasuredViewport.Width;
+                double viewportWidth = _pixelMeasuredViewport.Width;
                 if (elementRect.Right > viewportWidth)
                     _offset.X += 1;
                 else if (elementRect.Left < 0)
@@ -680,7 +680,7 @@ namespace L4d2AddonsMgr {
         class WrapPanelAbstraction : IEnumerable<ItemAbstraction> {
             public WrapPanelAbstraction(int itemCount) {
                 var items = new List<ItemAbstraction>(itemCount);
-                for (var i = 0; i < itemCount; i++) {
+                for (int i = 0; i < itemCount; i++) {
                     var item = new ItemAbstraction(this, i);
                     items.Add(item);
                 }
@@ -695,13 +695,13 @@ namespace L4d2AddonsMgr {
             private int _currentSetSection = -1;
             private int _currentSetItemIndex = -1;
             private int _itemsInCurrentSecction = 0;
-            private object _syncRoot = new object();
+            private readonly object _syncRoot = new object();
 
             public int SectionCount {
                 get {
-                    var ret = _currentSetSection + 1;
+                    int ret = _currentSetSection + 1;
                     if (_currentSetItemIndex + 1 < Items.Count) {
-                        var itemsLeft = Items.Count - _currentSetItemIndex;
+                        int itemsLeft = Items.Count - _currentSetItemIndex;
                         ret += itemsLeft / _averageItemsPerSection + 1;
                     }
                     return ret;

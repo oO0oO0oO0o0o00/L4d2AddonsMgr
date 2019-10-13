@@ -8,9 +8,11 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Fluent;
+using L4d2AddonsMgr.AddonsLibrarySpace;
 using L4d2AddonsMgr.AutoRenameSpace;
 using L4d2AddonsMgr.MeowTaskSpace;
 using L4d2AddonsMgr.OperationSpace;
+using L4d2AddonsMgr.RealFolderPicker;
 
 namespace L4d2AddonsMgr {
     /// <summary>
@@ -39,6 +41,8 @@ namespace L4d2AddonsMgr {
 
         const int WmDwmColorizationColorChanged = 0x320;
 
+        public static readonly RoutedCommand OpenExternalLibraryCommand = new RoutedCommand();
+
         public static readonly RoutedCommand ToggleAddonEnabledCommand = new RoutedCommand();
         public static readonly RoutedCommand TriggerSearchCommand = new RoutedCommand();
 
@@ -51,28 +55,28 @@ namespace L4d2AddonsMgr {
         public static readonly RoutedCommand OpAutoRenameCommand = new RoutedCommand();
 
         private bool listReady;
-        private string gameDir;
 
         private bool haventToggleEnabled;
 
-        public AddonsCollection Addons { get; private set; }
+        private readonly string libraryPath;
 
-        private AddonListTxt addonListTxt;
+        private string gameDir;
+
+        private AddonsListTxt addonsList;
 
         public MainWindow() {
             InitializeComponent();
-            Addons = new AddonsCollection();
-            Addons.PropertyChanged +=
-                (object sender, System.ComponentModel.PropertyChangedEventArgs e) => {
-                    if (e.PropertyName == nameof(AddonsCollection.IsLoading)) {
-                        CommandManager.InvalidateRequerySuggested();
-                    };
-                };
-            DataContext = this;
-            listReady = false;
-
-            haventToggleEnabled = true;
+            libraryPath = null;
         }
+
+        public MainWindow(string libraryPath) {
+            InitializeComponent();
+            this.libraryPath = libraryPath;
+        }
+
+        public bool SupportsEnabledState => libraryPath == null;
+
+        public AddonsCollection Addons { get; private set; }
 
         // Stay identical with Windows accent color.
         // https://stackoverflow.com/questions/13660976/get-the-active-color-of-windows-8-automatic-color-theme
@@ -98,27 +102,94 @@ namespace L4d2AddonsMgr {
          * AsyncTask?
          * https://stackoverflow.com/questions/27089263/how-to-run-and-interact-with-an-async-task-from-a-wpf-gui
          */
-        private async void AddonsGrid_Loaded(object sender, RoutedEventArgs e) {
+        private async void DoReloadAddonsFromLibrary() {
             if (!listReady) {
-                try {
-                    await Task.Run(() => FindGameDir());
-                } catch (AddonsLoadingException ale) {
-                    Dispatcher.Invoke(() => {
-                        LogErrorAndQuit(string.Format("尝试获取L4d2文件夹失败。\n{0}", ale.Reason), ale);
-                    });
-                    return;
-                } catch (Exception exc) {
-                    Dispatcher.Invoke(() => {
-                        LogErrorAndQuit("。。。", exc);
-                    });
-                    return;
-                }
                 Addons.IsLoading = true;
-                await Task.Run(() => ReloadAddonList());
-                await Task.Run(() => RefreshAddonsFromFile());
+                await Task.Run(() => Addons.ReloadFromLibrary());
                 Addons.IsLoading = false;
                 listReady = true;
             }
+        }
+
+        private async void AddonsGrid_Loaded(object sender, RoutedEventArgs e) {
+            await Task.Run(() => {
+                string path;
+                // 0: Find Steam install path from registry.
+                try {
+                    path = GameDirLocator.LocateSteamDirFromRegistry();
+                } catch (Exception ex) {
+                    // Just use "+"! It would ALWAYS be optimized away.
+                    // https://stackoverflow.com/questions/288794/does-c-sharp-optimize-the-concatenation-of-string-literals
+
+                    // LMAO Forget about answers by
+                    // https://stackoverflow.com/questions/1100260/multiline-string-literal-in-c-sharp
+                    // https://stackoverflow.com/questions/31764898/long-string-interpolation-lines-in-c6/31766560#31766560
+                    // Performance art they are doing.
+                    Debug.WriteLine(
+                        "ERROR: Failed locating installed Steam directory using registry.\n" +
+                        "Did anything restricted me from accesing the registry or what?\n" +
+                        "We were looking into 32-bit's view of the registry.\nDetails:");
+                    Debug.WriteLine(ex);
+                    ErrBox("尝试从您的计算机查找Steam安装信息时出错。");
+                    return;
+                }
+                if (path == null) {
+                    ErrBox("未能从您的计算机查找到Steam安装信息。");
+                    return;
+                }
+
+                // 1: Find game dir in all Steam libraries.
+                try {
+                    path = GameDirLocator.FindGameInLibraries(path);
+                    if (path == null) {
+                        ErrBox("未能从您的Steam库中查找到左4死2。");
+                        return;
+                    }
+                    if (!GameDirLocator.ValidateGameDir(path)) {
+                        ErrBox("从您的Steam库中查找到的左4死2文件夹结构不完整。");
+                        return;
+                    }
+                } catch (Exception ex) {
+                    Debug.WriteLine(ex);
+                    ErrBox("尝试从您的Steam库中查找左4死2时出错。");
+                    return;
+                }
+                if (libraryPath == null) {
+                    try {
+                        addonsList = new AddonsListTxt(path);
+                    } catch (Exception ex) {
+                        Debug.WriteLine(ex);
+                        MsgBox("读取附加组件配置文件失败，为避免数据丢失，部分功能将不可用。" +
+                                "建议您检查并更正addonlist.txt中的格式错误，或在线寻求帮助。");
+                    }
+                }
+                gameDir = path;
+            });
+            var lib = libraryPath == null ? new GameDirAddonsLibrary(gameDir, addonsList) : (AddonsLibrary)new ExternalDirectoryAddonsLibrary(libraryPath);
+            Addons = new AddonsCollection(lib);
+            Addons.PropertyChanged +=
+                (object sender2, System.ComponentModel.PropertyChangedEventArgs e2) => {
+                    if (e2.PropertyName == nameof(AddonsCollection.IsLoading)) {
+                        CommandManager.InvalidateRequerySuggested();
+                    };
+                };
+            DataContext = this;
+            listReady = false;
+
+            DoReloadAddonsFromLibrary();
+            haventToggleEnabled = true;
+        }
+
+        private void ErrBox(string text) => MsgBox(text, "出现异常");
+
+        private void MsgBox(string text, string caption = null)
+            => Dispatcher.Invoke(() => MessageBox.Show(text, caption));
+
+        private void OpenExternalLibraryCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
+            var picker = new FolderPicker();
+            var result = picker.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK)
+                new MainWindow(picker.DirectoryPath).Show();
         }
 
         private void OpenItemCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
@@ -149,10 +220,12 @@ namespace L4d2AddonsMgr {
             if (e.Parameter is FileInfo fileInfo)
                 Process.Start("explorer.exe", "/select, \"" + fileInfo.FullName + "\"");
         }
+
         private async void RefreshListCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
             Addons.IsLoading = true;
-            await Task.Run(() => ReloadAddonList());
-            await Task.Run(() => RefreshAddonsFromFile());
+            // TODO: Reload addon list.
+            //await Task.Run(() => ReloadAddonList());
+            await Task.Run(() => Addons.ReloadFromLibrary());
             Addons.IsLoading = false;
         }
 
@@ -174,7 +247,7 @@ namespace L4d2AddonsMgr {
                 Owner = this,
                 SelectedItemsCount = AddonsListBox.SelectedItems?.Count ?? 0
             };
-            var res = dialog.ShowDialog();
+            bool? res = dialog.ShowDialog();
             if (res ?? false) {
                 List<VpkHolder> list;
                 switch (dialog.MyAppliedScope.MyScope) {
@@ -186,18 +259,21 @@ namespace L4d2AddonsMgr {
                     // https://stackoverflow.com/questions/541194/c-sharp-version-of-javas-synchronized-keyword
                     lock (AddonsListBox.SelectedItems) {
                         list = new List<VpkHolder>(AddonsListBox.SelectedItems.Count);
-                        foreach (var o in AddonsListBox.SelectedItems) list.Add((VpkHolder)o);
+                        foreach (object o in AddonsListBox.SelectedItems) list.Add((VpkHolder)o);
                     }
                     break;
                 default: return;
                 }
                 Addons.IsLoading = true;
-                var renameTask = new AutoRenameTask(list, dialog.Model, gameDir, addonListTxt);
+                var renameTask = new AutoRenameTask(list, dialog.Model, gameDir, addonsList);
                 var dialog2 = new MeowTaskDialog() {
                     Owner = this,
                     MyTask = renameTask
                 };
-                var res2 = dialog2.ShowDialog();
+                bool? res2 = dialog2.ShowDialog();
+
+                // How would it be known by just guessing.
+                // https://www.wpf-tutorial.com/dialogs/the-messagebox/
                 if (res2 ?? false) MessageBox.Show("已完成。", "自动重命名");
                 Addons.IsLoading = false;
             }
@@ -209,9 +285,9 @@ namespace L4d2AddonsMgr {
 
         private async void ToggleAddonEnabledCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
             var holder = e.Parameter as VpkHolder;
-            var enabled = !holder.IsEnabled;
+            bool enabled = !holder.IsEnabled;
             holder.IsEnabled = enabled;
-            await Task.Run(() => addonListTxt.ToggleAddonEnabledStateAndWriteBack(holder.FileDispName, enabled));
+            await Task.Run(() => addonsList.ToggleAddonEnabledStateAndWriteBack(holder.FileDispName, enabled));
             if (haventToggleEnabled) {
                 var procL4d2 = ProcessQuitWaiter.GetRunningProcessOfPath(Path.Combine(gameDir, CommonConsts.L4d2ExeFileName));
                 if (procL4d2 != null) {

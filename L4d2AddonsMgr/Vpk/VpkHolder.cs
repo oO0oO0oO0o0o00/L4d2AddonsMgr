@@ -44,7 +44,7 @@ namespace L4d2AddonsMgr {
         public string Name {
             get {
                 if (!hasLoadedBriefDescr) LoadBriefDescr();
-                var ret = addonBriefInfo.preferMissionTitle ?
+                string ret = addonBriefInfo.preferMissionTitle ?
                     addonBriefInfo.missionTitle : addonBriefInfo.addonTitle;
                 if (ret == null) ret = addonBriefInfo.preferMissionTitle ?
                         addonBriefInfo.addonTitle : addonBriefInfo.missionTitle;
@@ -86,7 +86,7 @@ namespace L4d2AddonsMgr {
 
             // Find mission and addon meta data.
 
-            var res = vpk.Vindex.TryGetValue(CommonConsts.AddonTxtExtensionName, out var txtNode);
+            bool res = vpk.Vindex.TryGetValue(CommonConsts.AddonTxtExtensionName, out var txtNode);
             if (!res) goto AfterReadingTxts;
 
             res = txtNode.TryGetValue(CommonConsts.AddonMissionsPathName, out var missionsNode);
@@ -190,7 +190,7 @@ AfterReadingTxts:
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public enum VpkDirType {
-            AddonsDir, WorkShopDir, DisabledDir
+            AddonsDir, WorkShopDir, DisabledDir, External
         }
 
     }
