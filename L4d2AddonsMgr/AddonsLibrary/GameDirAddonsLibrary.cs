@@ -56,9 +56,13 @@ namespace L4d2AddonsMgr.AddonsLibrarySpace {
                     currentEnum.Dispose();
                     // Enumerate than list.
                     // https://docs.microsoft.com/en-us/dotnet/api/system.io.directory.enumeratefiles?view=netframework-4.8
-                    currentEnum = new DirectoryInfo(
-                        Path.Combine(basePath, CommonConsts.AddonsWorkshopDirectoryName)
-                    ).EnumerateFiles(CommonConsts.VpkFileSearchPattern).GetEnumerator();
+                    try {
+                        currentEnum = new DirectoryInfo(
+                            Path.Combine(basePath, CommonConsts.AddonsWorkshopDirectoryName)
+                        ).EnumerateFiles(CommonConsts.VpkFileSearchPattern).GetEnumerator();
+                    }catch (IOException) {
+                        return res;
+                    }
                     isEnumWorkshop = true;
                     return currentEnum.MoveNext();
                 }

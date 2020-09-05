@@ -206,6 +206,12 @@
 
         <ListBox ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0"
                  Name="AddonsListBox" ItemsSource="{Binding Addons.Files}" Grid.Row="2"
+                 PreviewMouseLeftButtonDown="AddonsListBox_PreviewMouseLeftButtonDown"
+                 PreviewMouseLeftButtonUp="AddonsListBox_PreviewMouseLeftButtonUp"
+                 PreviewMouseMove="AddonsListBox_PreviewMouseMove"
+                 AllowDrop="False" DragOver="AddonsListBox_DragValidate"
+                 DragEnter="AddonsListBox_DragValidate"
+                 Drop="AddonsListBox_Drop"
                             SelectionMode="Extended">
 
             <!--Templating? More like html than Android's adapter view.

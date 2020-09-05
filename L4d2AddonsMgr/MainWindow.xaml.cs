@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Fluent;
@@ -13,6 +14,7 @@ using L4d2AddonsMgr.AutoRenameSpace;
 using L4d2AddonsMgr.MeowTaskSpace;
 using L4d2AddonsMgr.OperationSpace;
 using L4d2AddonsMgr.RealFolderPicker;
+using L4d2AddonsMgr.Utils;
 
 namespace L4d2AddonsMgr {
     /// <summary>
@@ -64,9 +66,14 @@ namespace L4d2AddonsMgr {
 
         private AddonsListTxt addonsList;
 
+        private Point dragPoint;
+
+        private DataObject dragObj;
+
         public MainWindow() {
             InitializeComponent();
             libraryPath = null;
+            dragPoint = new Point(-1.0, 0.0);
         }
 
         public MainWindow(string libraryPath) {
@@ -232,7 +239,8 @@ namespace L4d2AddonsMgr {
         private void ToggleFilterCommand_CanInvoke(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = (null != Addons) ? !Addons.IsLoading : false;
 
         private void ToggleFilterCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
-            if (e.Parameter is AddonsCollection.VpkFilter filter) Addons.ToggleFilter(filter);
+            if (e.Parameter is AddonsCollection.VpkFilter filter)
+                Addons.ToggleFilter(filter);
         }
 
         private void ToggleFilterDownloadSourceCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
@@ -259,10 +267,12 @@ namespace L4d2AddonsMgr {
                     // https://stackoverflow.com/questions/541194/c-sharp-version-of-javas-synchronized-keyword
                     lock (AddonsListBox.SelectedItems) {
                         list = new List<VpkHolder>(AddonsListBox.SelectedItems.Count);
-                        foreach (object o in AddonsListBox.SelectedItems) list.Add((VpkHolder)o);
+                        foreach (object o in AddonsListBox.SelectedItems)
+                            list.Add((VpkHolder)o);
                     }
                     break;
-                default: return;
+                default:
+                    return;
                 }
                 Addons.IsLoading = true;
                 var renameTask = new AutoRenameTask(list, dialog.Model, gameDir, addonsList);
@@ -274,7 +284,8 @@ namespace L4d2AddonsMgr {
 
                 // How would it be known by just guessing.
                 // https://www.wpf-tutorial.com/dialogs/the-messagebox/
-                if (res2 ?? false) MessageBox.Show("已完成。", "自动重命名");
+                if (res2 ?? false)
+                    MessageBox.Show("已完成。", "自动重命名");
                 Addons.IsLoading = false;
             }
         }
@@ -322,10 +333,68 @@ namespace L4d2AddonsMgr {
 
         private void LogErrorAndQuit(string text, Exception exception) {
             MessageBox.Show(text ?? string.Format("应用程序发生错误：{0}", exception.Message));
-            if (text != null) Debug.WriteLine(text);
+            if (text != null)
+                Debug.WriteLine(text);
             Debug.WriteLine(exception);
             Close();
         }
 
+        private void AddonsListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+            dragPoint = e.GetPosition(null);
+        }
+
+        private void AddonsListBox_PreviewMouseMove(object sender, MouseEventArgs e) {
+            if (dragPoint.X < 0.0)
+                return;
+            var pt = e.GetPosition(null);
+            double a = pt.X - dragPoint.X;
+            double b = pt.Y - dragPoint.Y;
+            if (a * a + b * b > SystemParameters.MinimumHorizontalDragDistance * SystemParameters.MinimumHorizontalDragDistance) {
+                dragPoint = new Point(-1.0, 0.0);
+                var list = sender as ListBox;
+                var li =
+                    ((DependencyObject)e.OriginalSource).FindAnchestor<ListBoxItem>();
+                if (li == null)
+                    return;
+                var holder = (VpkHolder)list.ItemContainerGenerator.ItemFromContainer(li);
+                var dobj = dragObj = new DataObject();
+                dobj.SetFileDropList(new System.Collections.Specialized.StringCollection() { holder.FileInf.FullName });
+                var ret = DragDrop.DoDragDrop(li, dobj, DragDropEffects.Copy | DragDropEffects.Move);
+                Console.WriteLine("ret = " + ret);
+                dragObj = null;
+                //if (ret.HasFlag(DragDropEffects.Move))
+                //Addons.ReloadFromLibrary();
+            }
+        }
+
+        private void AddonsListBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
+            dragPoint = new Point(-1.0, 0.0);
+        }
+
+        private void AddonsListBox_DragValidate(object sender, DragEventArgs e) {
+            // No dropping to self.
+            if (dragObj != null) {
+                e.Effects = DragDropEffects.None;
+            } else if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effects = DragDropEffects.Copy;
+            else
+                e.Effects = DragDropEffects.None;
+            e.Handled = true;
+        }
+
+        private void AddonsListBox_Drop(object sender, DragEventArgs e) {
+            // TODO support linking.
+            // TODO differentiate copy/move.
+            //if (e.Effects.HasFlag(DragDropEffects.Move)) {
+            //   e.Data
+            // }else 
+            MessageBox.Show("123");
+            if (e.Effects.HasFlag(DragDropEffects.Copy)) {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                foreach (string file in files) {
+                    Console.WriteLine(file);
+                }
+            }
+        }
     }
 }
