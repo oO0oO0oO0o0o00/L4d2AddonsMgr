@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L4d2AddonsMgrTest", "L4d2Ad
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{95174B3B-1FB5-4AE4-BFD6-A826054249B6}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		ReadMe.md = ReadMe.md
 	EndProjectSection
 EndProject

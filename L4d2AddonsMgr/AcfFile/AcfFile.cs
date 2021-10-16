@@ -50,7 +50,7 @@ namespace L4d2AddonsMgr.AcfFileSpace {
         public static Node GetNodeIgnoreCase(Node node, string key) {
             if (!(node is CompoundNode cnode)) return null;
             foreach (var child in cnode.Value) {
-                if (key.ToLowerInvariant() == child.Key.ToLowerInvariant()) return child;
+                if (key.ToLowerInvariant() == child.Key?.ToLowerInvariant()) return child;
             }
             return null;
         }
@@ -184,7 +184,7 @@ namespace L4d2AddonsMgr.AcfFileSpace {
             Node node = Root;
             foreach (var seg in path) {
                 if (node == null) return null;
-                node = GetNode(node, seg);
+                node = GetNodeIgnoreCase(node, seg);
             }
             return node;
         }

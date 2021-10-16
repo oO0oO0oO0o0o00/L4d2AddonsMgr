@@ -23,11 +23,18 @@ namespace L4d2AddonsMgr {
                 var conf = AcfFile.ParseString(confTxt, true);
                 var infoNode = conf.GetNodeByPath(CommonConsts.SteamLibraryConfigVdfFileRootNode);
                 foreach (var node in (infoNode as AcfFile.CompoundNode).Value) {
-                    if (!(node is AcfFile.LeafNode)) continue;
+                    //if (!(node is AcfFile.LeafNode)) continue;
                     try {
                         int.Parse(node.Key);
+                        var libPath = (node as AcfFile.LeafNode)?.Value;
+                        if (libPath == null) {
+                            var comNode = node as AcfFile.CompoundNode;
+                            if ((comNode.GetChild("apps") as AcfFile.CompoundNode)?.GetChild("550") == null)
+                                continue;
+                            libPath = (comNode.GetChild("path") as AcfFile.LeafNode).Value;
+                        }
                         gamePath = FindGameInLibrary(
-                            Path.Combine((node as AcfFile.LeafNode).Value, CommonConsts.SteamAppsDirectoryName)
+                            Path.Combine(libPath, CommonConsts.SteamAppsDirectoryName)
                         );
                         if (gamePath != null) {
                             break;

@@ -83,7 +83,9 @@ namespace L4d2AddonsMgr {
 
         public bool SupportsEnabledState => libraryPath == null;
 
-        public AddonsCollection Addons { get; private set; }
+        public AddonsCollection Addons {
+            get; private set;
+        }
 
         // Stay identical with Windows accent color.
         // https://stackoverflow.com/questions/13660976/get-the-active-color-of-windows-8-automatic-color-theme
@@ -97,11 +99,11 @@ namespace L4d2AddonsMgr {
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
             switch (msg) {
-            case WmDwmColorizationColorChanged:
-                UpdateAccentColor();
-                return IntPtr.Zero;
-            default:
-                return IntPtr.Zero;
+                case WmDwmColorizationColorChanged:
+                    UpdateAccentColor();
+                    return IntPtr.Zero;
+                default:
+                    return IntPtr.Zero;
             }
         }
 
@@ -119,59 +121,60 @@ namespace L4d2AddonsMgr {
         }
 
         private async void AddonsGrid_Loaded(object sender, RoutedEventArgs e) {
-            await Task.Run(() => {
-                string path;
-                // 0: Find Steam install path from registry.
-                try {
-                    path = GameDirLocator.LocateSteamDirFromRegistry();
-                } catch (Exception ex) {
-                    // Just use "+"! It would ALWAYS be optimized away.
-                    // https://stackoverflow.com/questions/288794/does-c-sharp-optimize-the-concatenation-of-string-literals
-
-                    // LMAO Forget about answers by
-                    // https://stackoverflow.com/questions/1100260/multiline-string-literal-in-c-sharp
-                    // https://stackoverflow.com/questions/31764898/long-string-interpolation-lines-in-c6/31766560#31766560
-                    // Performance art they are doing.
-                    Debug.WriteLine(
-                        "ERROR: Failed locating installed Steam directory using registry.\n" +
-                        "Did anything restricted me from accesing the registry or what?\n" +
-                        "We were looking into 32-bit's view of the registry.\nDetails:");
-                    Debug.WriteLine(ex);
-                    ErrBox("尝试从您的计算机查找Steam安装信息时出错。");
-                    return;
-                }
-                if (path == null) {
-                    ErrBox("未能从您的计算机查找到Steam安装信息。");
-                    return;
-                }
-
-                // 1: Find game dir in all Steam libraries.
-                try {
-                    path = GameDirLocator.FindGameInLibraries(path);
-                    if (path == null) {
-                        ErrBox("未能从您的Steam库中查找到左4死2。");
-                        return;
-                    }
-                    if (!GameDirLocator.ValidateGameDir(path)) {
-                        ErrBox("从您的Steam库中查找到的左4死2文件夹结构不完整。");
-                        return;
-                    }
-                } catch (Exception ex) {
-                    Debug.WriteLine(ex);
-                    ErrBox("尝试从您的Steam库中查找左4死2时出错。");
-                    return;
-                }
-                if (libraryPath == null) {
+            if (libraryPath == null)
+                await Task.Run(() => {
+                    string path;
+                    // 0: Find Steam install path from registry.
                     try {
-                        addonsList = new AddonsListTxt(path);
+                        path = GameDirLocator.LocateSteamDirFromRegistry();
+                    } catch (Exception ex) {
+                        // Just use "+"! It would ALWAYS be optimized away.
+                        // https://stackoverflow.com/questions/288794/does-c-sharp-optimize-the-concatenation-of-string-literals
+
+                        // LMAO Forget about answers by
+                        // https://stackoverflow.com/questions/1100260/multiline-string-literal-in-c-sharp
+                        // https://stackoverflow.com/questions/31764898/long-string-interpolation-lines-in-c6/31766560#31766560
+                        // Performance art they are doing.
+                        Debug.WriteLine(
+                            "ERROR: Failed locating installed Steam directory using registry.\n" +
+                            "Did anything restricted me from accesing the registry or what?\n" +
+                            "We were looking into 32-bit's view of the registry.\nDetails:");
+                        Debug.WriteLine(ex);
+                        ErrBox("尝试从您的计算机查找Steam安装信息时出错。");
+                        return;
+                    }
+                    if (path == null) {
+                        ErrBox("未能从您的计算机查找到Steam安装信息。");
+                        return;
+                    }
+
+                    // 1: Find game dir in all Steam libraries.
+                    try {
+                        path = GameDirLocator.FindGameInLibraries(path);
+                        if (path == null) {
+                            ErrBox("未能从您的Steam库中查找到左4死2。");
+                            return;
+                        }
+                        if (!GameDirLocator.ValidateGameDir(path)) {
+                            ErrBox("从您的Steam库中查找到的左4死2文件夹结构不完整。");
+                            return;
+                        }
                     } catch (Exception ex) {
                         Debug.WriteLine(ex);
-                        MsgBox("读取附加组件配置文件失败，为避免数据丢失，部分功能将不可用。" +
-                                "建议您检查并更正addonlist.txt中的格式错误，或在线寻求帮助。");
+                        ErrBox("尝试从您的Steam库中查找左4死2时出错。");
+                        return;
                     }
-                }
-                gameDir = path;
-            });
+                    if (libraryPath == null) {
+                        try {
+                            addonsList = new AddonsListTxt(path);
+                        } catch (Exception ex) {
+                            Debug.WriteLine(ex);
+                            MsgBox("读取附加组件配置文件失败，为避免数据丢失，部分功能将不可用。" +
+                                    "建议您检查并更正addonlist.txt中的格式错误，或在线寻求帮助。");
+                        }
+                    }
+                    gameDir = path;
+                });
             var lib = libraryPath == null ? new GameDirAddonsLibrary(gameDir, addonsList) : (AddonsLibrary)new ExternalDirectoryAddonsLibrary(libraryPath);
             Addons = new AddonsCollection(lib);
             Addons.PropertyChanged +=
@@ -225,7 +228,7 @@ namespace L4d2AddonsMgr {
             // Show in explorer:
             // https://stackoverflow.com/questions/334630/opening-a-folder-in-explorer-and-selecting-a-file
             if (e.Parameter is FileInfo fileInfo)
-                Process.Start("explorer.exe", "/select, \"" + fileInfo.FullName + "\"");
+                ExplorerInterop.OpenFolderAndSelectItem(fileInfo.DirectoryName, fileInfo.Name);
         }
 
         private async void RefreshListCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
@@ -259,20 +262,20 @@ namespace L4d2AddonsMgr {
             if (res ?? false) {
                 List<VpkHolder> list;
                 switch (dialog.MyAppliedScope.MyScope) {
-                case AppliedScope.Scope.All:
-                    list = new List<VpkHolder>(Addons.Files);
-                    break;
-                case AppliedScope.Scope.SelectedItems:
-                    // synchronized and lock:
-                    // https://stackoverflow.com/questions/541194/c-sharp-version-of-javas-synchronized-keyword
-                    lock (AddonsListBox.SelectedItems) {
-                        list = new List<VpkHolder>(AddonsListBox.SelectedItems.Count);
-                        foreach (object o in AddonsListBox.SelectedItems)
-                            list.Add((VpkHolder)o);
-                    }
-                    break;
-                default:
-                    return;
+                    case AppliedScope.Scope.All:
+                        list = new List<VpkHolder>(Addons.Files);
+                        break;
+                    case AppliedScope.Scope.SelectedItems:
+                        // synchronized and lock:
+                        // https://stackoverflow.com/questions/541194/c-sharp-version-of-javas-synchronized-keyword
+                        lock (AddonsListBox.SelectedItems) {
+                            list = new List<VpkHolder>(AddonsListBox.SelectedItems.Count);
+                            foreach (object o in AddonsListBox.SelectedItems)
+                                list.Add((VpkHolder)o);
+                        }
+                        break;
+                    default:
+                        return;
                 }
                 Addons.IsLoading = true;
                 var renameTask = new AutoRenameTask(list, dialog.Model, gameDir, addonsList);

@@ -73,8 +73,12 @@ namespace L4d2AddonsMgr {
 
         public void ReloadFromLibrary() {
             Application.Current.Dispatcher.Invoke(() => Clear());
-            foreach (var item in Library)
-                Application.Current.Dispatcher.Invoke(new Action(() => Add(item)));
+            try {
+                foreach (var item in Library)
+                    Application.Current.Dispatcher.Invoke(new Action(() => Add(item)));
+            } catch (Exception) {
+                //
+            }
         }
 
         private void Add(VpkHolder vpkHolder) {

@@ -116,6 +116,7 @@
     <Compile Include="AddonsLibrary\GameDirAddonsLibrary.cs" />
     <Compile Include="CommonConsts.cs" />
     <Compile Include="Controls\MeowWrapPanel.cs" />
+    <Compile Include="ExplorerInterop.cs" />
     <Compile Include="GameDirLocator.cs" />
     <Compile Include="MeowTask\CancelConfirmationDialog.xaml.cs">
       <DependentUpon>CancelConfirmationDialog.xaml</DependentUpon>
