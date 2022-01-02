@@ -13,7 +13,7 @@ tab_width = 4
 
 # 新行首选项
 end_of_line = crlf
-insert_final_newline = false
+insert_final_newline =true
 
 #### .NET 编码约定 ####
 
@@ -144,10 +144,10 @@ csharp_indent_braces = false
 csharp_indent_case_contents = true
 csharp_indent_case_contents_when_block = true
 csharp_indent_labels = one_less_than_current
-csharp_indent_switch_labels = true
+csharp_indent_switch_labels =false
 
 # 空格键首选项
-csharp_space_after_cast = false
+csharp_space_after_cast =true
 csharp_space_after_colon_in_inheritance_clause = true
 csharp_space_after_comma = true
 csharp_space_after_dot = false
@@ -171,8 +171,8 @@ csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
 # 包装首选项
-csharp_preserve_single_line_blocks = false
-csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks =true
+csharp_preserve_single_line_statements =true
 
 #### 命名样式 ####
 

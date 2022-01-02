@@ -43,23 +43,23 @@
                     -->
                     <Fluent:ToggleButton Size="Middle" Header="创意工坊"
                                    Command="{x:Static local:MainWindow.ToggleFilterCommand}"
-                                   CommandParameter="{x:Static local:AddonsCollection+GeneralFilters.SourceSbeamFilter}"
+                                   CommandParameter="{x:Static local:MainWindowViewModel+GeneralFilters.SourceSbeamFilter}"
                                    Icon="pack://application:,,,/L4d2AddonsMgr;component/Images/sbeam-logo-small-black.png">
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterButtonCheckedStateConverter}" Mode="OneWay"
-                                     ConverterParameter="{x:Static local:AddonsCollection+GeneralFilters.SourceSbeamFilter}"
-                                     Path="Addons.BuiltinFilters"/>
+                                     ConverterParameter="{x:Static local:MainWindowViewModel+GeneralFilters.SourceSbeamFilter}"
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
                     <Fluent:ToggleButton Size="Middle" Header="其他"
                                    Command="{x:Static local:MainWindow.ToggleFilterCommand}"
-                                   CommandParameter="{x:Static local:AddonsCollection+GeneralFilters.SourceNonSbeamFilter}"
+                                   CommandParameter="{x:Static local:MainWindowViewModel+GeneralFilters.SourceNonSbeamFilter}"
                                    Icon="pack://application:,,,/L4d2AddonsMgr;component/Images/nonesbeam-logo-small-black.png">
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterButtonCheckedStateConverter}" Mode="OneWay"
-                                     ConverterParameter="{x:Static local:AddonsCollection+GeneralFilters.SourceNonSbeamFilter}"
-                                     Path="Addons.BuiltinFilters"/>
+                                     ConverterParameter="{x:Static local:MainWindowViewModel+GeneralFilters.SourceNonSbeamFilter}"
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
@@ -70,7 +70,7 @@
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterUrlButtonCheckedStateConverter}" Mode="OneWay"
                                      ConverterParameter="l4d2.cc"
-                                     Path="Addons.BuiltinFilters"/>
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
@@ -81,7 +81,7 @@
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterUrlButtonCheckedStateConverter}" Mode="OneWay"
                                      ConverterParameter="Steam Workshop"
-                                     Path="Addons.BuiltinFilters"/>
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
@@ -92,7 +92,7 @@
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterUrlButtonCheckedStateConverter}" Mode="OneWay"
                                      ConverterParameter="Game Maps"
-                                     Path="Addons.BuiltinFilters"/>
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
@@ -101,23 +101,23 @@
 
                     <Fluent:ToggleButton Header="地图"
                                    Command="{x:Static local:MainWindow.ToggleFilterCommand}"
-                                   CommandParameter="{x:Static local:AddonsCollection+GeneralFilters.TypeMapFilter}"
+                                   CommandParameter="{x:Static local:MainWindowViewModel+GeneralFilters.TypeMapFilter}"
                                    LargeIcon="pack://application:,,,/L4d2AddonsMgr;component/Images/map-icon-black.png">
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterButtonCheckedStateConverter}" Mode="OneWay"
-                                     ConverterParameter="{x:Static local:AddonsCollection+GeneralFilters.TypeMapFilter}"
-                                     Path="Addons.BuiltinFilters"/>
+                                     ConverterParameter="{x:Static local:MainWindowViewModel+GeneralFilters.TypeMapFilter}"
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
                     <Fluent:ToggleButton Size="Middle" Header="非地图"
                                    Command="{x:Static local:MainWindow.ToggleFilterCommand}"
-                                   CommandParameter="{x:Static local:AddonsCollection+GeneralFilters.TypeNonMapFilter}"
+                                   CommandParameter="{x:Static local:MainWindowViewModel+GeneralFilters.TypeNonMapFilter}"
                                    Icon="pack://application:,,,/L4d2AddonsMgr;component/Images/nonmap-icon-small-black.png">
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterButtonCheckedStateConverter}" Mode="OneWay"
-                                     ConverterParameter="{x:Static local:AddonsCollection+GeneralFilters.TypeNonMapFilter}"
-                                     Path="Addons.BuiltinFilters"/>
+                                     ConverterParameter="{x:Static local:MainWindowViewModel+GeneralFilters.TypeNonMapFilter}"
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
@@ -126,27 +126,28 @@
 
                     <Fluent:ToggleButton Header="已启用"
                                    Command="{x:Static local:MainWindow.ToggleFilterCommand}"
-                                   CommandParameter="{x:Static local:AddonsCollection+GeneralFilters.StateEnabledFilter}"
+                                   CommandParameter="{x:Static local:MainWindowViewModel+GeneralFilters.StateEnabledFilter}"
                                    LargeIcon="pack://application:,,,/L4d2AddonsMgr;component/Images/yes-icon-color.png">
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterButtonCheckedStateConverter}" Mode="OneWay"
-                                     ConverterParameter="{x:Static local:AddonsCollection+GeneralFilters.StateEnabledFilter}"
-                                     Path="Addons.BuiltinFilters"/>
+                                     ConverterParameter="{x:Static local:MainWindowViewModel+GeneralFilters.StateEnabledFilter}"
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
                     <Fluent:ToggleButton Header="未启用"
                                    Command="{x:Static local:MainWindow.ToggleFilterCommand}"
-                                   CommandParameter="{x:Static local:AddonsCollection+GeneralFilters.StateDisabledFilter}"
+                                   CommandParameter="{x:Static local:MainWindowViewModel+GeneralFilters.StateDisabledFilter}"
                                    LargeIcon="pack://application:,,,/L4d2AddonsMgr;component/Images/no-icon-color.png">
                         <Fluent:ToggleButton.IsChecked>
                             <Binding Converter="{StaticResource FilterButtonCheckedStateConverter}" Mode="OneWay"
-                                     ConverterParameter="{x:Static local:AddonsCollection+GeneralFilters.StateDisabledFilter}"
-                                     Path="Addons.BuiltinFilters"/>
+                                     ConverterParameter="{x:Static local:MainWindowViewModel+GeneralFilters.StateDisabledFilter}"
+                                     Path="BuiltinFilters"/>
                         </Fluent:ToggleButton.IsChecked>
                     </Fluent:ToggleButton>
 
                 </Fluent:RibbonGroupBox>
+
             </Fluent:RibbonTabItem>
 
             <Fluent:RibbonTabItem Header="操作">
@@ -177,8 +178,8 @@
             <TextBlock HorizontalAlignment="Left" Foreground="DarkGray">
                 <TextBlock.Text>
                     <MultiBinding StringFormat="{}共{0}个文件，{1}">
-                        <Binding Path="Addons.Files.Count"/>
-                        <Binding Path="Addons.ShownFilesSize" Converter="{StaticResource FormatFileSizeConverter}"/>
+                        <Binding Path="Files.Count"/>
+                        <Binding Path="ShownFilesSize" Converter="{StaticResource FormatFileSizeConverter}"/>
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
@@ -187,7 +188,7 @@
                     <Style>
                         <Setter Property="TextBlock.Visibility" Value="Collapsed"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Addons.IsLoading}" Value="True">
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
                                 <Setter Property="TextBlock.Visibility" Value="Visible"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -205,7 +206,7 @@
         https://stackoverflow.com/questions/36108/how-to-get-controls-in-wpf-to-fill-available-space -->
 
         <ListBox ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0"
-                 Name="AddonsListBox" ItemsSource="{Binding Addons.Files}" Grid.Row="2"
+                 Name="AddonsListBox" ItemsSource="{Binding Files}" Grid.Row="2"
                  PreviewMouseLeftButtonDown="AddonsListBox_PreviewMouseLeftButtonDown"
                  PreviewMouseLeftButtonUp="AddonsListBox_PreviewMouseLeftButtonUp"
                  PreviewMouseMove="AddonsListBox_PreviewMouseMove"
@@ -407,6 +408,7 @@
         <CommandBinding Command="{x:Static local:MainWindow.OpAutoRenameCommand}"
                         CanExecute="OpSelOrAll_CanInvoke"
                     Executed="OpAutoRenameCommand_Invoke"/>
+
     </Window.CommandBindings>
 
     <Window.InputBindings>

@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using L4d2AddonsMgr.AddonsLibrarySpace;
+using L4d2AddonsMgr.MeowTaskSpace;
+using L4d2AddonsMgr.Service;
 
 namespace L4d2AddonsMgr {
 
@@ -13,7 +16,7 @@ namespace L4d2AddonsMgr {
      * ...
      * https://stackoverflow.com/questions/32985342/how-to-bind-sum-of-observable-collection-in-wpf
      */
-    public class AddonsCollection : INotifyPropertyChanged {
+    public class MainWindowViewModel : INotifyPropertyChanged {
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -21,14 +24,26 @@ namespace L4d2AddonsMgr {
 
         private string _filterText;
 
+        private readonly string libraryPath;
+
+        public bool SupportsEnabledState => libraryPath == null;
+
         private List<VpkHolder> allFiles;
 
-        public AddonsLibrary Library { get; private set; }
+        private bool listReady;
+
+        private bool haventToggleEnabled;
+
+        public AddonsLibrary Library {
+            get; private set;
+        }
 
         public string FilterText {
             get => _filterText; set {
-                if (value == null || value == "" || value.Trim() == "") value = null;
-                else value = value.ToLowerInvariant();
+                if (value == null || value == "" || value.Trim() == "")
+                    value = null;
+                else
+                    value = value.ToLowerInvariant();
                 string previous = _filterText;
                 if (value != previous) {
                     _filterText = value;
@@ -38,78 +53,146 @@ namespace L4d2AddonsMgr {
             }
         }
 
-        public ObservableCollection<VpkHolder> Files { get; set; }
+        public ObservableCollection<VpkHolder> Files {
+            get; set;
+        }
 
-        public List<VpkFilter> BuiltinFilters { get; }
+        public List<VpkFilter> BuiltinFilters {
+            get; private set;
+        }
 
-        public List<VpkFilter> DownloadUrlFilters { get; }
+        public List<VpkFilter> DownloadUrlFilters {
+            get; private set;
+        }
 
         public bool IsLoading {
             get => _isLoading;
-            set {
+            private set {
                 bool oldVal = _isLoading;
                 _isLoading = value;
-                if (oldVal != value) OnPropertyChanged(nameof(IsLoading));
+                if (oldVal != value) Application.Current.Dispatcher.Invoke(() => OnPropertyChanged(nameof(IsLoading)));
             }
         }
 
         public long ShownFilesSize {
             get {
                 long sum = 0;
-                foreach (var file in Files) sum += file.FileSize;
+                foreach (var file in Files)
+                    sum += file.FileSize;
                 return sum;
             }
         }
 
-        public AddonsCollection(AddonsLibrary addonsLibrary) {
-            Library = addonsLibrary;
+        public MainWindowViewModel() : this(null) { }
+
+        public MainWindowViewModel(string libraryPath) {
+            this.libraryPath = libraryPath;
+            haventToggleEnabled = true;
+        }
+
+        public void Load() {
+            if (libraryPath == null) {
+                try {
+                    string gameDir = GameDirService.LocateInstalledGame();
+                    var addonsList = AddonListService.GetAddonsList(gameDir);
+                    Library = new GameDirAddonsLibrary(gameDir, addonsList);
+                } catch (GameDirService.Exception gameDirException) {
+                    switch (gameDirException.TheReason) {
+                    case GameDirService.Exception.Reason.SteamPathNotFoundInRegistry:
+                        ErrBox("未能从您的计算机查找到Steam安装信息。");
+                        break;
+                    case GameDirService.Exception.Reason.GamePathNotFound:
+                        ErrBox("未能从您的Steam库中查找到左4死2。");
+                        break;
+                    case GameDirService.Exception.Reason.GamePathBroken:
+                        ErrBox("从您的Steam库中查找到的左4死2文件夹结构不完整。");
+                        break;
+                    default:
+                        ErrBox("找不到您的左4死2安装。");
+                        break;
+                    }
+                    return;
+                } catch (AddonListService.Exception addonListException) {
+                    ErrBox("读取附加组件配置文件失败，为避免数据丢失，部分功能将不可用。" +
+                                    "建议您检查并更正addonlist.txt中的格式错误");
+                }
+            } else {
+                Library = new ExternalDirectoryAddonsLibrary(libraryPath);
+            }
+            listReady = false;
+
             allFiles = new List<VpkHolder>();
             BuiltinFilters = new List<VpkFilter>();
             DownloadUrlFilters = new List<VpkFilter>();
             Files = new ObservableCollection<VpkHolder>();
             Files.CollectionChanged +=
                 (s, e) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShownFilesSize"));
+            ReloadFromLibrary();
         }
+
+        private void ErrBox(string text) => MsgBox(text, "出现异常");
+
+        private void MsgBox(string text, string caption = null)
+            => Application.Current.Dispatcher.Invoke(() => MessageBox.Show(text, caption));
 
         public void ReloadFromLibrary() {
-            Application.Current.Dispatcher.Invoke(() => Clear());
+            IsLoading = true;
+            ClearAddons();
             try {
-                foreach (var item in Library)
-                    Application.Current.Dispatcher.Invoke(new Action(() => Add(item)));
-            } catch (Exception) {
-                //
-            }
+                foreach (var item in Library) AddAddon(item);
+            } catch (Exception) { }
+            IsLoading = false;
+            listReady = true;
         }
 
-        private void Add(VpkHolder vpkHolder) {
-            allFiles.Add(vpkHolder);
-            if (Filter(vpkHolder)) Files.Add(vpkHolder);
-        }
+        private void AddAddon(VpkHolder vpkHolder) =>
+            Application.Current.Dispatcher.Invoke(() => {
+                allFiles.Add(vpkHolder);
+                if (Filter(vpkHolder))
+                    Files.Add(vpkHolder);
+            });
 
-        private void Clear() {
-            allFiles.Clear();
-            Files.Clear();
+        private void ClearAddons() =>
+            Application.Current.Dispatcher.Invoke(() => {
+                allFiles.Clear();
+                Files.Clear();
+            });
+
+        public void ToggleAddonEnabledState(VpkHolder holder, bool enabled) {
+            if (!(Library is GameDirAddonsLibrary gameDirAddonsLibrary)) throw new Exception();
+            gameDirAddonsLibrary.listTxt.ToggleAddonEnabledStateAndWriteBack(holder.FileDispName, enabled);
+            if (!haventToggleEnabled) return;
+            var procL4d2 = ProcessQuitWaiter.GetRunningProcessOfPath(Path.Combine(gameDirAddonsLibrary.gameDir, CommonConsts.L4d2ExeFileName));
+            if (procL4d2 == null) return;
+            procL4d2.Dispose();
+            MessageBox.Show("检测到L4D2正在运行。\n要使本软件中启用或禁用的操作" +
+                            "立即生效，您【不需要】重新启动游戏，但是需要以下额外操作：\n" +
+                            "1. 回到游戏主界面；\n" +
+                            "2. 点击“附加内容”选项，有两个的话应该是第一个，也可能显示Addons；\n" +
+                            "3. 如果有弹窗，点击“确定”；\n" +
+                            "4. 点击“完成”。", "需要额外操作");
+            haventToggleEnabled = false;
         }
 
         public void ToggleFilter(VpkFilter filter) {
-            if (BuiltinFilters.Contains(filter)) RemoveFilterRecur(filter);
-            else AddFilterRecur(filter);
+            if (BuiltinFilters.Contains(filter))
+                RemoveFilterRecur(filter);
+            else
+                AddFilterRecur(filter);
             RefreshShownList();
             OnPropertyChanged(nameof(BuiltinFilters));
         }
 
         public void AddFilter(VpkFilter filter) {
-            if (AddFilterRecur(filter)) {
-                OnPropertyChanged(nameof(BuiltinFilters));
-                RefreshShownList();
-            }
+            if (!AddFilterRecur(filter)) return;
+            OnPropertyChanged(nameof(BuiltinFilters));
+            RefreshShownList();
         }
 
         public void RemoveFilter(VpkFilter filter) {
-            if (RemoveFilterRecur(filter)) {
-                OnPropertyChanged(nameof(BuiltinFilters));
-                RefreshShownList();
-            }
+            if (!RemoveFilterRecur(filter)) return;
+            OnPropertyChanged(nameof(BuiltinFilters));
+            RefreshShownList();
         }
 
         private bool AddFilterRecur(VpkFilter filter) {
@@ -121,26 +204,25 @@ namespace L4d2AddonsMgr {
             if (filter.exclusiveOfType)
                 do {
                     notDone = false;
-                    foreach (var item in BuiltinFilters)
-                        if (item.GetType() == filter.GetType()) {
-                            RemoveFilterRecur(item);
-                            notDone = true;
-                            break;
-                        }
-                } while (notDone);
-            // "They hate me."
-            do {
-                notDone = false;
-                foreach (var item in BuiltinFilters)
-                    if (item.hates.Contains(filter)) {
+                    foreach (var item in BuiltinFilters.Where(item => item.GetType() == filter.GetType())) {
                         RemoveFilterRecur(item);
                         notDone = true;
                         break;
                     }
+                } while (notDone);
+            // "They hate me."
+            do {
+                notDone = false;
+                foreach (var item in BuiltinFilters.Where(item => item.hates.Contains(filter))) {
+                    RemoveFilterRecur(item);
+                    notDone = true;
+                    break;
+                }
             } while (notDone);
             BuiltinFilters.Add(filter);
             // "I need these."
-            foreach (var need in filter.needs) AddFilterRecur(need);
+            foreach (var need in filter.needs)
+                AddFilterRecur(need);
             return true;
         }
 
@@ -163,29 +245,36 @@ namespace L4d2AddonsMgr {
         }
 
         private bool Filter(VpkHolder holder) {
-            if (!FilterByText(holder)) return false;
-            foreach (var filter in BuiltinFilters) if (!filter.Filter(holder)) return false;
+            if (!FilterByText(holder))
+                return false;
+            foreach (var filter in BuiltinFilters)
+                if (!filter.Filter(holder))
+                    return false;
             //foreach (var filter in urlFilters) if (!filter(holder)) return false;
             return true;
         }
 
         private bool FilterByText(VpkHolder holder) {
-            if (_filterText == null) return true;
+            if (_filterText == null)
+                return true;
             if (holder.AddonTitle != null) {
-                if (holder.AddonTitle.Contains(_filterText)) return true;
+                if (holder.AddonTitle.Contains(_filterText))
+                    return true;
                 if (holder.AddonSearchName.Match(_filterText)) {
                     Debug.WriteLine(holder.AddonTitle);
                     return true;
                 }
             }
             if (holder.MissionTitle != null) {
-                if (holder.MissionTitle.Contains(_filterText)) return true;
+                if (holder.MissionTitle.Contains(_filterText))
+                    return true;
                 if (holder.MissionSearchName.Match(_filterText)) {
                     Debug.WriteLine(holder.MissionTitle);
                     return true;
                 }
             }
-            if (holder.FileNameNoExt.Contains(_filterText)) return true;
+            if (holder.FileNameNoExt.Contains(_filterText))
+                return true;
             if (holder.FileSearchName.Match(_filterText)) {
                 Debug.WriteLine(holder.FileNameNoExt);
                 return true;
@@ -196,8 +285,6 @@ namespace L4d2AddonsMgr {
         private void RefreshShownList() {
             IsLoading = true;
             Application.Current.Dispatcher.Invoke(() => Files.Clear());
-            // Get a dispatcher.
-            // https://stackoverflow.com/questions/11625208/accessing-ui-main-thread-safely-in-wpf
             foreach (var item in allFiles)
                 if (Filter(item)) {
                     // Vitualize the wrap panel.
@@ -242,7 +329,9 @@ namespace L4d2AddonsMgr {
                     try {
                         string txt = vpkHolder.vpk.GetContainedFileText(CommonConsts.AddonRuntimeRootPathName,
                         CommonConsts.AddonAddonInfoFileName, CommonConsts.AddonTxtExtensionName);
-                        foreach (string str in urls) if (txt.Contains(str)) return true;
+                        foreach (string str in urls)
+                            if (txt.Contains(str))
+                                return true;
                     } catch (Exception) { }
                     return false;
                 }) {
@@ -313,6 +402,7 @@ namespace L4d2AddonsMgr {
             }
 
         }
+
     }
 
 }

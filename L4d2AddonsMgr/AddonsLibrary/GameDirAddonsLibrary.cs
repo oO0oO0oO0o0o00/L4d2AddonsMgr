@@ -7,9 +7,9 @@ namespace L4d2AddonsMgr.AddonsLibrarySpace {
 
     public class GameDirAddonsLibrary : AddonsLibrary {
 
-        private readonly string gameDir;
+        public readonly string gameDir;
 
-        private readonly AddonsListTxt listTxt;
+        public readonly AddonsListTxt listTxt;
 
         public GameDirAddonsLibrary(string gameDir, AddonsListTxt listTxt) {
             this.gameDir = gameDir;

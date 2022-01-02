@@ -99,25 +99,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AcfFile\AcfFile.cs" />
-    <Compile Include="AcfFile\CompoundNode.cs" />
-    <Compile Include="AcfFile\LeafNode.cs" />
-    <Compile Include="AcfFile\Lexer.cs" />
-    <Compile Include="AcfFile\Node.cs" />
-    <Compile Include="AcfFile\ParserException.cs" />
-    <Compile Include="AcfFile\Token.cs" />
-    <Compile Include="AcfFile\TokenType.cs" />
-    <Compile Include="AcfFile\UnexpectedCharacterException.cs" />
-    <Compile Include="AcfFile\UnexpectedTokenException.cs" />
-    <Compile Include="AddonListTxt.cs" />
-    <Compile Include="AddonsCollection.cs" />
+    <Compile Include="Model\AcfFile\AcfFile.cs" />
+    <Compile Include="Model\AcfFile\CompoundNode.cs" />
+    <Compile Include="Model\AcfFile\LeafNode.cs" />
+    <Compile Include="Model\AcfFile\Lexer.cs" />
+    <Compile Include="Model\AcfFile\Node.cs" />
+    <Compile Include="Model\AcfFile\ParserException.cs" />
+    <Compile Include="Model\AcfFile\Token.cs" />
+    <Compile Include="Model\AcfFile\TokenType.cs" />
+    <Compile Include="Model\AcfFile\UnexpectedCharacterException.cs" />
+    <Compile Include="Model\AcfFile\UnexpectedTokenException.cs" />
+    <Compile Include="Model\AddonListTxt.cs" />
+    <Compile Include="Service\AddonListService.cs" />
+    <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="AddonsLibrary\AddonsLibrary.cs" />
     <Compile Include="AddonsLibrary\ExternalDirectoryAddonsLibrary.cs" />
     <Compile Include="AddonsLibrary\GameDirAddonsLibrary.cs" />
     <Compile Include="CommonConsts.cs" />
     <Compile Include="Controls\MeowWrapPanel.cs" />
     <Compile Include="ExplorerInterop.cs" />
-    <Compile Include="GameDirLocator.cs" />
+    <Compile Include="Service\GameDirService.cs" />
     <Compile Include="MeowTask\CancelConfirmationDialog.xaml.cs">
       <DependentUpon>CancelConfirmationDialog.xaml</DependentUpon>
     </Compile>
@@ -138,7 +139,6 @@
     </Compile>
     <Compile Include="AutoRename\AutoRenameTask.cs" />
     <Compile Include="MeowTask\IMeowTask.cs" />
-    <Compile Include="MainWindow.xaml.Exceptions.cs" />
     <Compile Include="MeowTask\MeowTask.cs" />
     <Compile Include="RealFolderPicker\FolderPicker.cs" />
     <Compile Include="Utils\CStringUtil.cs" />
