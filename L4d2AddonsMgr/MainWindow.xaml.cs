@@ -55,6 +55,7 @@ namespace L4d2AddonsMgr {
         public static readonly RoutedCommand ToggleFilterDownloadSourceCommand = new RoutedCommand();
 
         public static readonly RoutedCommand OpAutoRenameCommand = new RoutedCommand();
+        public static readonly RoutedCommand ExportMapsListCommand = new RoutedCommand();
 
         private Point dragPoint;
 
@@ -198,6 +199,19 @@ namespace L4d2AddonsMgr {
             // https://www.wpf-tutorial.com/dialogs/the-messagebox/
             if (res2 ?? false)
                 MessageBox.Show("已完成。", "自动重命名");
+        }
+
+        private void ExportMapsListCommand_CanInvoke(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = true;
+
+        private void ExportMapsListCommand_Invoke(object sender, ExecutedRoutedEventArgs e) {
+            var dlg = new Microsoft.Win32.SaveFileDialog {
+                FileName = $"maps_{DateTime.Now:yyyyMMdd_hhmmss}",
+                DefaultExt = ".json",
+                Filter = "json (.json)|*.json"
+            };
+            if (dlg.ShowDialog() == true) {
+                ViewModel.ExportMapsList(dlg.FileName);
+            }
         }
 
         private void TriggerSearchCommand_Invoke(object sender, ExecutedRoutedEventArgs e) => SearchBox.ActivateSearch();

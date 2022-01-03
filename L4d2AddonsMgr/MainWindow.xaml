@@ -6,7 +6,8 @@
         xmlns:Fluent="urn:fluent-ribbon"
         xmlns:local="clr-namespace:L4d2AddonsMgr"
         xmlns:sb="clr-namespace:ExplorerSearchBox;assembly=ExplorerSearchBox"
-        mc:Ignorable="d" x:Name="PartRoot"
+        d:DataContext="{d:DesignInstance Type=local:MainWindowViewModel}"
+                     mc:Ignorable="d" x:Name="PartRoot"
         Title="👈4👻2 Addons Manager" Height="450" Width="800" MinWidth="800" MinHeight="600">
 
     <Grid Loaded="AddonsGrid_Loaded" Name="MainView">
@@ -160,6 +161,18 @@
                     -->
                     <Fluent:Button Header="自动&#xa;重命名..."
                                    Command="{x:Static local:MainWindow.OpAutoRenameCommand}"
+                                   LargeIcon="pack://application:,,,/L4d2AddonsMgr;component/Images/rename-icon-black.png"/>
+
+                </Fluent:RibbonGroupBox>
+
+                <Fluent:RibbonGroupBox>
+
+                    <!--
+                    Break line:
+                    https://stackoverflow.com/questions/1449276/multiline-text-in-a-wpf-button
+                    -->
+                    <Fluent:Button Header="导出&#xa;地图表"
+                                   Command="{x:Static local:MainWindow.ExportMapsListCommand}"
                                    LargeIcon="pack://application:,,,/L4d2AddonsMgr;component/Images/rename-icon-black.png"/>
 
                 </Fluent:RibbonGroupBox>
@@ -408,6 +421,10 @@
         <CommandBinding Command="{x:Static local:MainWindow.OpAutoRenameCommand}"
                         CanExecute="OpSelOrAll_CanInvoke"
                     Executed="OpAutoRenameCommand_Invoke"/>
+
+        <CommandBinding Command="{x:Static local:MainWindow.ExportMapsListCommand}"
+                        CanExecute="ExportMapsListCommand_CanInvoke"
+                        Executed="ExportMapsListCommand_Invoke"/>
 
     </Window.CommandBindings>
 

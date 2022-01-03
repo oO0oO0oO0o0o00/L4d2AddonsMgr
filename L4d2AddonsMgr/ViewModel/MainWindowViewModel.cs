@@ -1,4 +1,5 @@
-﻿using System;
+﻿using L4d2AddonsMgr.AcfFileSpace;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,6 +10,7 @@ using System.Windows;
 using L4d2AddonsMgr.AddonsLibrarySpace;
 using L4d2AddonsMgr.MeowTaskSpace;
 using L4d2AddonsMgr.Service;
+using Newtonsoft.Json;
 
 namespace L4d2AddonsMgr {
 
@@ -193,6 +195,27 @@ namespace L4d2AddonsMgr {
             if (!RemoveFilterRecur(filter)) return;
             OnPropertyChanged(nameof(BuiltinFilters));
             RefreshShownList();
+        }
+
+        public void ExportMapsList(string path) {
+            var list = new Dictionary<string, List<string>>();
+            foreach (var holder in Files) {
+                try {
+                    if (!holder.HasMission) continue;
+                    var missions = holder.vpk.Vindex[CommonConsts.AddonTxtExtensionName][CommonConsts.AddonMissionsPathName];
+                    var mission = missions.Select(desc => AcfFile.ParseString(holder.vpk.GetContainedFileText(desc.Value), true)).FirstOrDefault();
+                    //MessageBox.Show(holder.MissionTitle??holder.AddonTitle);
+                    if (!(mission?.GetNodeByPath(CommonConsts.AddonMissionConfigAcfNodeMission, "modes", "coop") is AcfFile.CompoundNode maps)) continue;
+                    var subList = new List<string>();
+                    foreach (var map in maps.Value) {
+                        if (map is AcfFile.CompoundNode mapNode && mapNode.GetChild("Map") is AcfFile.LeafNode leaf) {
+                            subList.Add(leaf.Value);
+                        }
+                    }
+                    list[holder.MissionTitle ?? holder.AddonTitle] = subList;
+                } catch (Exception) { }
+            }
+            File.WriteAllText(path, JsonConvert.SerializeObject(list, Formatting.Indented));
         }
 
         private bool AddFilterRecur(VpkFilter filter) {

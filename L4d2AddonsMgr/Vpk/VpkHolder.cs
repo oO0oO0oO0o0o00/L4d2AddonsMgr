@@ -101,8 +101,8 @@ namespace L4d2AddonsMgr {
             AcfFile acf;
             try {
                 acf = AcfFile.ParseString(vpk.GetContainedFileText(descr), true);
-                Debug.WriteLineIf(acf.HasError, string.Format(
-                    "Warning: Mission definition file in {0} has error but was still attempted to be parsed.", FileDispName));
+                Debug.WriteLineIf(acf.HasError,
+                    $"Warning: Mission definition file in {FileDispName} has error but was still attempted to be parsed.");
             } catch (Exception) {
                 goto AfterReadingMissionMeta;
             }
